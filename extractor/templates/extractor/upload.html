@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload PDF</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css?v=20250831">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css?v=20250831">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'extractor/css/upload.css' %}">
+    <link rel="stylesheet" href="{% static 'extractor/css/notifications.css' %}?v={% now 'U' %}">
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.20/dist/sweetalert2.min.css">
+    <!-- Base notification script -->
+    <script src="{% static 'extractor/js/notifications.js' %}?v={% now 'U' %}"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 30px;
+            background: linear-gradient(135deg, #8BC6EC 0%, #9599E2 100%);
+            min-height: 100vh;
+            color: #2c3e50;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body:before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            z-index: -1;
+            border-radius: 50%;
+        }
+        
+        body:after {
+            content: '';
+            position: absolute;
+            bottom: -100px;
+            left: -100px;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            z-index: -1;
+            border-radius: 50%;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: linear-gradient(to right, #4776E6, #8E54E9);
+            padding: 25px 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(142, 84, 233, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-buttons {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .header:before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(45deg);
+            pointer-events: none;
+        }
+        
+        .header h1 {
+            margin: 0;
+            color: white;
+            font-weight: 700;
+            font-size: 28px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .dashboard-link {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 28px;
+            text-decoration: none;
+            border-radius: 50px;
+            transition: all 0.3s;
+            font-weight: 600;
+            font-size: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(5px);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .dashboard-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            color: white;
+        }
+        
+        .admin-link {
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.25);
+        }
+        
+        .admin-link:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+        
+        .dashboard-link i {
+            font-size: 18px;
+        }
+        .upload-form {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            position: relative;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            overflow: hidden;
+            margin-bottom: 30px;
+            transform: translateZ(0);
+        }
+        
+        .upload-form:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(to right, #4776E6, #8E54E9);
+            z-index: 1;
+        }
+        
+        .upload-form:after {
+            content: '';
+            position: absolute;
+            bottom: -80px;
+            right: -80px;
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, rgba(71, 118, 230, 0.1), rgba(142, 84, 233, 0.1));
+            border-radius: 50%;
+            z-index: 0;
+        }
+        
+        .upload-form h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: #4776E6;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .upload-form h1:after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -10px;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(to right, #4776E6, #8E54E9);
+            border-radius: 2px;
+        }
+        
+        .form-group {
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s;
+        }
+        
+        .form-group:hover {
+            transform: translateY(-3px);
+        }
+        
+        .file-input-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .file-input {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 12px;
+            background: white;
+            box-shadow: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            font-size: 15px;
+            color: #2d3436;
+        }
+        
+        .file-input:hover {
+            border-color: #4776E6;
+            box-shadow: 0 0 0 3px rgba(71, 118, 230, 0.1);
+        }
+        
+        .file-input:focus {
+            outline: none;
+            border-color: #4776E6;
+            box-shadow: 0 0 0 3px rgba(71, 118, 230, 0.2);
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: #4776E6;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+            position: relative;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        
+        label:after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -3px;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(to right, #4776E6, #8E54E9);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+        
+        .form-group:hover label:after {
+            width: 100%;
+        }
+        
+        select, input[type="file"] {
+            width: 100%;
+            padding: 16px 20px;
+            margin-bottom: 15px;
+            border: 2px solid rgba(71, 118, 230, 0.2);
+            border-radius: 12px;
+            background-color: rgba(255, 255, 255, 0.7);
+            transition: all 0.3s;
+            font-size: 16px;
+            color: #2d3436;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+            cursor: pointer;
+        }
+        
+        input[type="file"] {
+            padding: 14px 18px;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234776E6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 20px;
+            padding-right: 45px;
+        }
+        
+        select:focus, input[type="file"]:focus {
+            border-color: #4776E6;
+            box-shadow: 0 5px 20px rgba(71, 118, 230, 0.15);
+            outline: none;
+            transform: translateY(-2px);
+        }
+        
+        select:hover, input[type="file"]:hover {
+            border-color: #8E54E9;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(71, 118, 230, 0.15);
+        }
+        
+        /* Customize file input */
+        
+        /* Enhance button animation */
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(71, 118, 230, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(71, 118, 230, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(71, 118, 230, 0); }
+        }
+        
+        button {
+            background: linear-gradient(45deg, #4776E6, #8E54E9);
+            color: white;
+            padding: 16px 35px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 10px 20px rgba(71, 118, 230, 0.2);
+            margin-top: 15px;
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: all 0.6s;
+        }
+        
+        button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 25px rgba(71, 118, 230, 0.3);
+            animation: pulse-glow 1.5s infinite;
+        }
+        
+        button:hover:before {
+            left: 100%;
+        }
+        
+        /* Alert styles */
+        .alert {
+            display: flex;
+            align-items: center;
+            border-radius: 15px;
+            box-shadow: 0 15px 25px rgba(0,0,0,0.1);
+            animation: fadeIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            padding: 20px;
+            border: none;
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            transform: translateZ(0);
+            transition: all 0.3s;
+        }
+        
+        .alert:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 30px rgba(0,0,0,0.15);
+        }
+        
+        .alert:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: rgba(255,255,255,0.5);
+        }
+        
+        .alert i {
+            margin-right: 15px;
+            font-size: 24px;
+            background: rgba(255,255,255,0.2);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        }
+        
+        .alert-danger {
+            background: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%);
+            color: white;
+        }
+        
+        .alert-warning {
+            background: linear-gradient(135deg, #F09819 0%, #EDDE5D 100%);
+            color: white;
+        }
+        
+        .alert-success {
+            background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
+            color: white;
+        }
+        
+        .alert-info {
+            background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+            color: white;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .upload-form h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: #2c3e50;
+            position: relative;
+            display: inline-block;
+        }
+        .upload-form h1:after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -8px;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(to right, #00c6ff, #0072ff);
+            border-radius: 3px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #34495e;
+            font-size: 15px;
+        }
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            border: 1px solid #dfe6e9;
+            border-radius: 8px;
+            background-color: #f8fafc;
+            transition: all 0.3s;
+            font-size: 15px;
+            color: #2d3436;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+        select:focus {
+            border-color: #00c6ff;
+            box-shadow: 0 0 0 3px rgba(0, 198, 255, 0.2);
+            outline: none;
+        }
+        select:hover {
+            border-color: #74b9ff;
+        }
+        
+        /* Clean file input styling */
+        input[type="file"].file-input {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px 10px 10px 40px;
+            background: white;
+            box-shadow: none;
+            cursor: pointer;
+            width: 100%;
+            font-size: 15px;
+            color: #2d3436;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        input[type="file"].file-input:hover {
+            border-color: #4776E6;
+        }
+        
+        input[type="file"].file-input:focus {
+            outline: none;
+            border-color: #4776E6;
+            box-shadow: 0 0 0 3px rgba(71, 118, 230, 0.2);
+        }
+        
+        input[type="file"].file-input::before {
+            content: '\f15c';  /* Font Awesome file icon */
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 400;
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: #4776E6;
+        }
+        
+        /* Drag & Drop Styles */
+        .file-drop-area {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s, border-color 0.3s;
+            min-height: 150px;
+        }
+        
+        .file-drop-area:hover, .file-drop-area.drag-over {
+            background-color: #e9ecef;
+            border-color: #6c757d;
+        }
+        
+        .file-drop-area.file-selected {
+            background-color: #e8f4ff;
+            border-color: #4776E6;
+            border-style: solid;
+        }
+        
+        .file-drop-icon {
+            font-size: 2.5rem;
+            color: #6c757d;
+            margin-bottom: 1rem;
+        }
+        
+        .file-drop-message {
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .file-name {
+            color: #212529;
+            font-weight: bold;
+            margin-top: 0.5rem;
+            word-break: break-word;
+        }
+        
+        .hidden-input {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        button {
+            background: linear-gradient(to right, #4b6cb7, #182848);
+            color: white;
+            padding: 14px 30px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 8px 15px rgba(75, 108, 183, 0.2);
+            margin-top: 10px;
+        }
+        button:hover {
+            background: linear-gradient(to right, #3b5998, #0f2027);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px rgba(75, 108, 183, 0.3);
+        }
+        
+        /* Loading spinner */
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            margin: 35px 0;
+            position: relative;
+        }
+        
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(142, 84, 233, 0.2);
+            border-radius: 50%;
+            border-top: 5px solid #8E54E9;
+            animation: spin 1.5s linear infinite;
+            margin: 0 auto;
+            box-shadow: 0 10px 20px rgba(142, 84, 233, 0.15);
+            position: relative;
+        }
+        
+        .spinner:before, .spinner:after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            border-top-color: rgba(71, 118, 230, 0.3);
+            animation: spin-reverse 2s linear infinite;
+        }
+        
+        .spinner:after {
+            top: -15px;
+            left: -15px;
+            right: -15px;
+            bottom: -15px;
+            border-top-color: rgba(71, 118, 230, 0.2);
+            animation: spin 3s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes spin-reverse {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(-360deg); }
+        }
+        
+        .processing-text {
+            margin-top: 25px;
+            color: #4776E6;
+            font-size: 18px;
+            font-weight: 600;
+            animation: pulse 1.5s infinite;
+            text-shadow: 0 2px 10px rgba(71, 118, 230, 0.3);
+            letter-spacing: 0.5px;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        
+        /* Supported formats info */
+        .supported-formats {
+            margin-top: 35px;
+            color: white;
+            background: rgba(71, 118, 230, 0.2);
+            padding: 20px 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        
+        .supported-formats:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            background: rgba(71, 118, 230, 0.25);
+        }
+        
+        .supported-formats:before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            z-index: 0;
+        }
+        
+        .supported-formats p {
+            position: relative;
+            z-index: 1;
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .supported-formats p:before {
+            content: '📄';
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        /* Enhanced notification system */
+        #notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            width: 350px;
+        }
+        .notification {
+            margin-bottom: 15px;
+            padding: 18px;
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slide-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .notification:before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255,255,255,0.1);
+            transform: rotate(30deg);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        @keyframes slide-in {
+            0% { transform: translateX(100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        .notification-success {
+            background: linear-gradient(135deg, #43E97B 0%, #38F9D7 100%);
+            color: white;
+        }
+        .notification-warning {
+            background: linear-gradient(135deg, #F09819 0%, #EDDE5D 100%);
+            color: white;
+        }
+        .notification-error {
+            background: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%);
+            color: white;
+        }
+        .notification-info {
+            background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+            color: white;
+        }
+        .notification-icon {
+            margin-right: 15px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 1;
+        }
+        .notification-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            opacity: 0.8;
+            padding: 5px;
+            transition: all 0.3s;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            position: relative;
+            z-index: 1;
+        }
+        .notification-close:hover {
+            opacity: 1;
+            transform: rotate(90deg);
+            background: rgba(255,255,255,0.2);
+        }
+        
+        /* Fade out animation */
+        .fade-out {
+            animation: fade-out 0.3s forwards;
+        }
+        @keyframes fade-out {
+            to { opacity: 0; transform: translateY(-10px); }
+        }
+        
+        /* Progress Bar */
+        .progress-container {
+            margin-top: 35px;
+            display: none;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+            transform: translateZ(0);
+        }
+        
+        .progress-container:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        
+        .progress-phase {
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress-phase i {
+            color: #8E54E9;
+            animation: pulse 1.5s infinite;
+            font-size: 18px;
+        }
+        
+        #progressPercent {
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, #4776E6, #8E54E9);
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-size: 14px;
+            box-shadow: 0 5px 15px rgba(71, 118, 230, 0.2);
+            min-width: 60px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #progressPercent:before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255,255,255,0.1);
+            transform: rotate(30deg);
+            pointer-events: none;
+        }
+        
+        .progress {
+            height: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(to right, #4776E6, #8E54E9) !important;
+            box-shadow: 0 0 10px rgba(0, 198, 255, 0.5);
+            position: relative;
+            overflow: hidden;
+            transition: width 0.5s ease-in-out;
+        }
+        
+        .progress-bar:after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                rgba(255,255,255,0.2) 25%, 
+                transparent 25%, 
+                transparent 50%, 
+                rgba(255,255,255,0.2) 50%, 
+                rgba(255,255,255,0.2) 75%, 
+                transparent 75%, 
+                transparent);
+            background-size: 20px 20px;
+            animation: move-stripes 1s linear infinite;
+            z-index: 1;
+        }
+        
+        @keyframes move-stripes {
+            0% { background-position: 0 0; }
+            100% { background-position: 20px 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Upload PDF for Extraction</h1>
+        <div class="header-buttons">
+            <a href="{% url 'dashboard' %}" class="dashboard-link" target="_blank">View Dashboard</a>
+            {% if user.is_authenticated %}
+                <a href="/admin/" class="dashboard-link admin-link" target="_blank">
+                    <i class="fas fa-user-shield"></i> Go to Admin
+                </a>
+            {% else %}
+                <a href="/admin/login/" class="dashboard-link admin-link" target="_blank">
+                    <i class="fas fa-sign-in-alt"></i> Login to Admin
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Server message alerts - shown at top of page for high visibility -->
+    {% if messages %}
+    <div class="alert-section" style="margin-bottom: 20px;">
+        {% for message in messages %}
+            {% if message.tags == 'error' %}
+                <div class="alert alert-danger" role="alert" style="font-size: 16px; font-weight: bold; padding: 15px; margin-bottom: 10px;">
+                    <i class="fas fa-exclamation-triangle"></i> {{ message }}
+                </div>
+            {% elif message.tags == 'warning' %}
+                <div class="alert alert-warning" role="alert" style="font-size: 16px; font-weight: bold; padding: 15px; margin-bottom: 10px;">
+                    <i class="fas fa-exclamation-triangle"></i> {{ message }}
+                </div>
+            {% elif message.tags == 'success' %}
+                <div class="alert alert-success" role="alert" style="font-size: 16px; font-weight: bold; padding: 15px; margin-bottom: 10px;">
+                    <i class="fas fa-check-circle"></i> {{ message }}
+                </div>
+            {% else %}
+                <div class="alert alert-info" role="alert" style="font-size: 16px; font-weight: bold; padding: 15px; margin-bottom: 10px;">
+                    <i class="fas fa-info-circle"></i> {{ message }}
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="upload-form">
+        <h1>Upload PDF and Extract Data</h1>
+        <form method="post" enctype="multipart/form-data" id="uploadForm" data-show-loading="true">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="pdf">Choose PDF:</label>
+                <div id="drop-area" class="file-drop-area">
+                    <div class="file-drop-icon">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <div class="file-drop-message">Drop the pdf here</div>
+                    <div id="file-name" class="file-name"></div>
+                    <input type="file" name="pdf" id="pdf" accept=".pdf" required class="file-input hidden-input">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="vendor">Select Vendor:</label>
+                <select name="vendor" id="vendor" required>
+                    {% for vendor in vendors %}
+                        <option value="{{ vendor.id }}">{{ vendor.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" id="submitBtn">
+                <i class="fas fa-cloud-upload-alt"></i>
+                Extract Data
+            </button>
+        </form>
+
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+        <div class="processing-text"><i class="fas fa-cog fa-spin"></i> Processing PDF, please wait...</div>
+    </div>        <!-- Progress bar (appears during processing) -->
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-label">
+                <span class="progress-phase" id="progressPhase"><i class="fas fa-sync-alt fa-spin"></i> Initializing...</span>
+                <span id="progressPercent">0%</span>
+            </div>
+            <div class="progress">
+                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                     role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="supported-formats">
+        <p><i class="fas fa-file-pdf"></i> <strong>Note:</strong> Only PDF files are supported. Please ensure the PDF matches the selected vendor's format.</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js?v=20250831"></script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.20/dist/sweetalert2.min.js"></script>
+    <!-- Enhanced notification system -->
+    <script src="{% static 'extractor/js/enhanced-notifications.js' %}?v={% now 'U' %}"></script>
+    <script>
+        // Form submission handler with vendor validation and progress tracking
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Show processing UI
+            document.getElementById('submitBtn').style.display = 'none';
+            document.getElementById('loadingSpinner').style.display = 'block';
+            document.getElementById('progressContainer').style.display = 'block';
+
+            try {
+                const formData = new FormData(this);
+                const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                const response = await fetch('{% url "process_pdf" %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: formData
+                });
+                const data = await response.json();
+
+                // Handle error responses
+                if (data.status === 'error') {
+                    resetUI();
+                    
+                    // Handle different error types
+                    if (data.type === 'vendor_not_found' || data.type === 'config_missing') {
+                        // Vendor or config issues
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Configuration Error',
+                            text: data.message,
+                            confirmButtonText: 'Try Again',
+                            confirmButtonColor: '#FF4B2B',
+                            background: 'linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)',
+                            color: 'white'
+                        });
+                    } else if (data.type === 'vendor_mismatch') {
+                        // Vendor mismatch error
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Vendor Mismatch',
+                            text: data.message,
+                            html: `
+                                <div style="text-align: left; margin-top: 15px;">
+                                    <p style="margin-bottom: 10px; font-weight: bold;">${data.message}</p>
+                                    <p style="margin-bottom: 5px; color: #666;"><strong>Originally uploaded for:</strong> ${data.original_vendor}</p>
+                                    <p style="color: #666;"><strong>Currently selected:</strong> ${data.new_vendor}</p>
+                                </div>
+                            `,
+                            confirmButtonText: 'Select Correct Vendor',
+                            confirmButtonColor: '#F09819',
+                            background: 'linear-gradient(135deg, #F09819 0%, #EDDE5D 100%)',
+                            color: 'white'
+                        }).then(() => {
+                            document.getElementById('vendor').focus();
+                        });
+                    } else if (data.detected_vendor || data.confidence) {
+                        // Vendor validation error with detection details
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Vendor Validation Failed',
+                            text: data.message,
+                            html: `
+                                <div style="text-align: left; margin-top: 15px;">
+                                    <p style="margin-bottom: 10px; font-weight: bold;">${data.message}</p>
+                                    ${data.details ? `<p style="margin-bottom: 8px; color: #666;"><strong>Details:</strong> ${data.details}</p>` : ''}
+                                    ${data.detected_vendor ? `<p style="margin-bottom: 5px; color: #666;"><strong>Detected vendor:</strong> ${data.detected_vendor}</p>` : ''}
+                                    ${data.confidence ? `<p style="color: #666;"><strong>Confidence:</strong> ${Math.round(data.confidence * 100)}%</p>` : ''}
+                                </div>
+                            `,
+                            confirmButtonText: 'Select Correct Vendor',
+                            confirmButtonColor: '#FF4B2B',
+                            width: '500px',
+                            background: 'linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)',
+                            color: 'white'
+                        }).then(() => {
+                            document.getElementById('vendor').focus();
+                        });
+                    } else {
+                        // Generic error
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Upload Error',
+                            text: data.message,
+                            confirmButtonText: 'Try Again',
+                            confirmButtonColor: '#FF4B2B',
+                            background: 'linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)',
+                            color: 'white'
+                        });
+                    }
+                    return;
+                }
+
+                // Handle warning responses (like duplicates)
+                if (data.status === 'warning') {
+                    resetUI();
+                    
+                    if (data.type === 'duplicate') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Duplicate PDF',
+                            text: data.message,
+                            html: `
+                                <div style="text-align: left; margin-top: 15px;">
+                                    <p style="margin-bottom: 10px; font-weight: bold;">${data.message}</p>
+                                    ${data.processed_date ? `<p style="color: #666;"><strong>Processed on:</strong> ${data.processed_date}</p>` : ''}
+                                </div>
+                            `,
+                            confirmButtonText: 'Upload Different PDF',
+                            confirmButtonColor: '#F09819',
+                            background: 'linear-gradient(135deg, #F09819 0%, #EDDE5D 100%)',
+                            color: 'white'
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Warning',
+                            text: data.message,
+                            confirmButtonColor: '#F09819'
+                        });
+                    }
+                    return;
+                }
+
+                // Handle successful processing
+                if (data.status === 'processing') {
+                    // Show success notification
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Upload Successful!',
+                        text: data.message,
+                        timer: 3000,
+                        showConfirmButton: false,
+                        background: 'linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)',
+                        color: 'white'
+                    });
+                    
+                    // Start progress polling if we have a task ID
+                    if (data.task_id) {
+                        localStorage.setItem('lastTaskId', data.task_id);
+                        pollTaskStatus(data.task_id);
+                    }
+                    
+                    // Stay on the upload page - no redirect
+                    return;
+                }
+
+                // Handle other response formats (backward compatibility)
+                if (!response.ok) {
+                    resetUI();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Upload Failed',
+                        text: data.message || 'An error occurred during upload',
+                        confirmButtonColor: '#FF4B2B'
+                    });
+                    return;
+                }
+                
+                // Fallback handling for old response format
+                if (data.task_id) {
+                    localStorage.setItem('lastTaskId', data.task_id);
+                    pollTaskStatus(data.task_id);
+                    
+                    // Show processing notification
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Processing Started',
+                        text: 'PDF processing has started. Please wait for completion.',
+                        timer: 2000,
+                        showConfirmButton: false,
+                        background: 'linear-gradient(135deg, #4776E6 0%, #8E54E9 100%)',
+                        color: 'white'
+                    });
+                }
+                
+                // Stay on upload page - no redirect
+
+            } catch (error) {
+                console.error('Upload error:', error);
+                resetUI();
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Connection Error',
+                    text: 'Failed to upload file. Please check your connection and try again.',
+                    confirmButtonColor: '#FF4B2B'
+                });
+            }
+        });
+        
+        // Initialize notification system
+        const notifications = document.querySelectorAll('.notification');
+        notifications.forEach(function(notification, index) {
+            // Set custom icon based on type
+            const type = notification.classList.contains('notification-success') ? 'success' :
+                       notification.classList.contains('notification-warning') ? 'warning' :
+                       notification.classList.contains('notification-error') ? 'error' : 'info';
+            
+            const iconMap = {
+                'success': '<i class="fas fa-check-circle"></i>',
+                'warning': '<i class="fas fa-exclamation-triangle"></i>',
+                'error': '<i class="fas fa-times-circle"></i>',
+                'info': '<i class="fas fa-info-circle"></i>'
+            };
+            
+            const iconSpan = notification.querySelector('.notification-icon');
+            if (iconSpan) {
+                iconSpan.innerHTML = iconMap[type];
+            }
+            
+            // Add type-specific styles
+            if (type === 'warning' || type === 'error') {
+                notification.style.animation = 'shake 0.5s';
+            }
+
+            // Handle delayed dismissal
+            setTimeout(() => {
+                notification.classList.add('fade-out');
+                setTimeout(() => notification.remove(), 300);
+            }, 5000 + (index * 500)); // Stagger dismissal
+        });
+        
+        // Check for task ID in local storage (from previous upload)
+        const storedTaskId = localStorage.getItem('lastTaskId');
+        if (storedTaskId) {
+            // Show progress UI and start polling
+            document.getElementById('submitBtn').style.display = 'none';
+            document.getElementById('loadingSpinner').style.display = 'block';
+            document.getElementById('progressContainer').style.display = 'block';
+            
+            pollTaskStatus(storedTaskId);
+            
+            // Clear from storage after starting to poll
+            localStorage.removeItem('lastTaskId');
+        }
+        
+        // Helper function to reset UI elements
+        function resetUI() {
+            document.getElementById('loadingSpinner').style.display = 'none';
+            document.getElementById('progressContainer').style.display = 'none';
+            document.getElementById('submitBtn').style.display = 'block';
+        }
+        
+        // Poll task status for progress updates using new progress endpoint
+        function pollTaskStatus(taskId) {
+            const progressBar = document.getElementById('progressBar');
+            const progressPercent = document.getElementById('progressPercent');
+            const progressPhase = document.getElementById('progressPhase');
+            
+            let pollCount = 0;
+            const maxPolls = 300; // Stop polling after 10 minutes (300 * 2 seconds)
+            let extractionCompleted = false;
+            
+            const pollInterval = setInterval(async () => {
+                pollCount++;
+                
+                // Stop polling after maximum attempts to prevent infinite polling
+                if (pollCount > maxPolls) {
+                    clearInterval(pollInterval);
+                    console.log('Polling stopped after maximum attempts');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/progress/${taskId}/`);
+                    
+                    // Check if response is ok
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // Update progress bar with the percentage from backend
+                    const percent = data.progress || 0;
+                    progressBar.style.width = `${percent}%`;
+                    progressBar.setAttribute('aria-valuenow', percent);
+                    progressPercent.textContent = `${percent}%`;
+                    
+                    // Update phase message
+                    progressPhase.innerHTML = data.message || '<i class="fas fa-sync-alt fa-spin"></i> Processing...';
+                    
+                    // Check if extraction is complete
+                    if (data.state === 'SUCCESS' || percent >= 100) {
+                        clearInterval(pollInterval);
+                        extractionCompleted = true;
+                        
+                        // Complete progress UI
+                        progressBar.style.width = '100%';
+                        progressBar.setAttribute('aria-valuenow', 100);
+                        progressPercent.textContent = '100%';
+                        
+                        // Show success notification with action buttons
+                        if (data.message.includes('✅')) {
+                            // Success case
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Extraction Complete!',
+                                text: data.message,
+                                showCancelButton: true,
+                                confirmButtonText: 'View Dashboard',
+                                cancelButtonText: 'Upload Another PDF',
+                                confirmButtonColor: '#43E97B',
+                                cancelButtonColor: '#4776E6',
+                                background: 'linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)',
+                                color: 'white',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    // Open dashboard in new tab
+                                    window.open('{% url "dashboard" %}', '_blank');
+                                }
+                                // Reset form for new upload (for both options)
+                                resetUI();
+                                document.getElementById('uploadForm').reset();
+                                document.getElementById('file-name').textContent = '';
+                                document.getElementById('drop-area').classList.remove('file-selected');
+                            });
+                        } else if (data.message.includes('⚠️')) {
+                            // Partial success case
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Partial Extraction',
+                                text: data.message,
+                                showCancelButton: true,
+                                confirmButtonText: 'View Dashboard',
+                                cancelButtonText: 'Upload Another PDF',
+                                confirmButtonColor: '#F09819',
+                                cancelButtonColor: '#4776E6',
+                                background: 'linear-gradient(135deg, #F09819 0%, #EDDE5D 100%)',
+                                color: 'white',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    // Open dashboard in new tab
+                                    window.open('{% url "dashboard" %}', '_blank');
+                                }
+                                // Reset form for new upload (for both options)
+                                resetUI();
+                                document.getElementById('uploadForm').reset();
+                                document.getElementById('file-name').textContent = '';
+                                document.getElementById('drop-area').classList.remove('file-selected');
+                            });
+                        } else {
+                            // Generic success case (fallback)
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Extraction Complete!',
+                                text: data.message || 'PDF processing completed successfully!',
+                                showCancelButton: true,
+                                confirmButtonText: 'View Dashboard',
+                                cancelButtonText: 'Upload Another PDF',
+                                confirmButtonColor: '#43E97B',
+                                cancelButtonColor: '#4776E6',
+                                background: 'linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)',
+                                color: 'white',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    // Open dashboard in new tab
+                                    window.open('{% url "dashboard" %}', '_blank');
+                                }
+                                // Reset form for new upload (for both options)
+                                resetUI();
+                                document.getElementById('uploadForm').reset();
+                                document.getElementById('file-name').textContent = '';
+                                document.getElementById('drop-area').classList.remove('file-selected');
+                            });
+                        }
+                        
+                        // Clear task ID from storage
+                        localStorage.removeItem('lastTaskId');
+                        
+                        // Reset UI to allow for new uploads
+                        setTimeout(() => {
+                            if (!extractionCompleted) return; // Don't reset if dialog is open
+                            resetUI();
+                            document.getElementById('uploadForm').reset();
+                            document.getElementById('file-name').textContent = '';
+                            document.getElementById('drop-area').classList.remove('file-selected');
+                        }, 3000);
+                    } 
+                    else if (data.state === 'FAILURE' || data.message.includes('❌')) {
+                        clearInterval(pollInterval);
+                        resetUI();
+                        
+                        // Show error notification with retry option
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Extraction Failed',
+                            text: data.message || 'Extraction failed. Please try again.',
+                            showCancelButton: true,
+                            confirmButtonText: 'Try Again',
+                            cancelButtonText: 'Upload Different PDF',
+                            confirmButtonColor: '#FF4B2B',
+                            cancelButtonColor: '#6c757d',
+                            background: 'linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)',
+                            color: 'white',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Retry with same file (just show upload button again)
+                                resetUI();
+                            } else {
+                                // Reset form completely for new upload
+                                resetUI();
+                                document.getElementById('uploadForm').reset();
+                                document.getElementById('file-name').textContent = '';
+                                document.getElementById('drop-area').classList.remove('file-selected');
+                            }
+                        });
+                        
+                        // Clear task ID from storage
+                        localStorage.removeItem('lastTaskId');
+                    }
+                } catch (error) {
+                    console.error('Error polling task status:', error);
+                    
+                    // Only show connection error if extraction hasn't completed yet
+                    if (!extractionCompleted) {
+                        clearInterval(pollInterval);
+                        resetUI();
+                        
+                        // Show more user-friendly error message
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Connection Issue',
+                            text: 'Lost connection while checking progress. The extraction may have completed. Please check the dashboard or try refreshing the page.',
+                            showCancelButton: true,
+                            confirmButtonText: 'Check Dashboard',
+                            cancelButtonText: 'Stay Here',
+                            confirmButtonColor: '#4776E6',
+                            cancelButtonColor: '#6c757d'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.open('{% url "dashboard" %}', '_blank');
+                            }
+                        });
+                        
+                        // Clear task ID from storage
+                        localStorage.removeItem('lastTaskId');
+                    }
+                }
+            }, 2000); // Poll every 2 seconds as requested
+        }
+        
+        // Drag and drop file upload functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropArea = document.getElementById('drop-area');
+            const fileInput = document.getElementById('pdf');
+            const fileName = document.getElementById('file-name');
+            
+            // Prevent default drag behaviors
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+                document.body.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            // Highlight drop area when item is dragged over it
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+            
+            // Handle dropped files
+            dropArea.addEventListener('drop', handleDrop, false);
+            
+            // Handle manual file selection
+            fileInput.addEventListener('change', handleFiles, false);
+            
+            // Click anywhere in drop area to trigger file input
+            dropArea.addEventListener('click', function() {
+                fileInput.click();
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            function highlight() {
+                dropArea.classList.add('drag-over');
+            }
+            
+            function unhighlight() {
+                dropArea.classList.remove('drag-over');
+            }
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                if (files.length) {
+                    fileInput.files = files;
+                    handleFiles();
+                }
+            }
+            
+            function handleFiles() {
+                if (fileInput.files.length) {
+                    const file = fileInput.files[0];
+                    
+                    // Validate file type
+                    if (file.type !== 'application/pdf') {
+                        showEnhancedNotification('Please select a PDF file', 'error', {
+                            title: 'File Required',
+                            position: 'center'
+                        });
+                        fileInput.value = '';
+                        fileName.textContent = '';
+                        return;
+                    }
+                    
+                    // Display file name
+                    fileName.textContent = file.name;
+                    
+                    // Add a "selected" class to the drop area for styling
+                    dropArea.classList.add('file-selected');
+                    
+                    // Show a success notification
+                    showEnhancedNotification('PDF file selected successfully', 'success', {
+                        title: 'File Selected',
+                        timer: 3000
+                    });
+                }
+            }
+        });
+        
+        // Process Django messages on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            {% if messages %}
+                {% for message in messages %}
+                    {% if message.tags == 'success' %}
+                        // Check if the message is about extraction completion
+                        if ("{{ message.message|lower|escapejs }}".includes('extraction completed')) {
+                            // Extract the number of fields from the message
+                            const messageText = "{{ message.message|escapejs }}";
+                            const match = messageText.match(/(\d+) fields extracted/);
+                            const extractedCount = match ? match[1] : 0;
+                            
+                            // Show the enhanced extraction notification
+                            showExtractionNotification(extractedCount, 'completed');
+                        } else {
+                            showEnhancedNotification("{{ message.message|escapejs }}", "success");
+                        }
+                    {% elif message.tags == 'warning' %}
+                        // Check if the message is about partial extraction
+                        if ("{{ message.message|lower|escapejs }}".includes('partial extraction')) {
+                            // Extract the number of fields from the message
+                            const messageText = "{{ message.message|escapejs }}";
+                            const match = messageText.match(/(\d+) fields extracted/);
+                            const extractedCount = match ? match[1] : 0;
+                            
+                            // Show the enhanced extraction notification
+                            showExtractionNotification(extractedCount, 'partial_success_ocr');
+                        } else {
+                            showEnhancedNotification("{{ message.message|escapejs }}", "warning");
+                        }
+                    {% elif message.tags == 'error' %}
+                        showEnhancedNotification("{{ message.message|escapejs }}", "error");
+                    {% else %}
+                        showEnhancedNotification("{{ message.message|escapejs }}", "info");
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        });
+    </script>
+</body>
+</html>
