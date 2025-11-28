@@ -19,7 +19,7 @@ if not User.objects.filter(username='admin').exists():
 
 # Collect static files
 echo "Collecting static files..."
-python manage.py collectstatic --noinput
+python manage.py collectstatic --noinput    
 
 # Create required directories
 echo "Creating required directories..."
@@ -27,6 +27,6 @@ mkdir -p media/uploads media/extracted media/vendor_configs staticfiles
 
 # Start server
 echo "Starting server..."
-python manage.py runserver 0.0.0.0:8000
+python manage.py runserver 0.0.0.0:9000
 
 

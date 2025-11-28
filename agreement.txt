@@ -1,0 +1,181 @@
+# PROJECT DEVELOPMENT AGREEMENT
+
+**Project Name:** PDF Data Extraction and Management System  
+**Date:** June 12, 2025  
+**Version:** 1.0
+
+---
+
+## 1. PROJECT OVERVIEW
+
+### System Description
+This project involves the development of a comprehensive PDF data extraction and management system with the following key components:
+- **Backend:** Django-based web application with PostgreSQL database
+- **Frontend:** Web-based user interface for PDF upload and data management
+- **Processing:** Automated extraction engine using OCR and pattern recognition
+- **Infrastructure:** Dockerized deployment with Celery for background processing and Redis for task queuing
+
+### Primary Purpose
+The system is designed to:
+- Extract structured data fields (Heat No, Plate No, Certificate No, etc.) from steel industry test certificates
+- Support multiple vendor formats (JSW, POSCO, Hengrun, Iraeta, CITIC, etc.)
+- Store extracted data in a structured database format
+- Provide file management capabilities including bulk downloads and Excel exports
+- Offer a web-based admin interface for data visualization and management
+
+---
+
+## 2. CLIENT REQUIREMENTS
+
+### Sample Data Provision
+- **PDF Samples:** Client must provide representative PDF samples from each vendor for development and testing purposes
+- **Format Variety:** Samples should include different layouts, languages, and quality levels to ensure robust extraction
+- **Testing Data:** Additional test cases for validation and quality assurance
+
+### Vendor Configuration Specification
+- **Field Mapping:** Client must clearly specify which fields need to be extracted for each vendor
+- **Pattern Requirements:** Any specific formatting requirements or validation rules for extracted data
+- **Priority Vendors:** Client must identify which vendors are highest priority for initial development
+
+### Infrastructure Requirements
+- **Server Environment:** Client must specify deployment environment preferences:
+  - Self-hosted server infrastructure, OR
+  - Cloud deployment requirements, OR
+  - Confirmation that Docker/VM setup will be handled by developer
+- **Resource Specifications:** Minimum system requirements for production deployment
+- **Access Credentials:** Necessary access for deployment and configuration
+
+---
+
+## 3. DEVELOPER RESPONSIBILITIES
+
+### Core System Development
+- **Extraction Engine:** Build robust PDF data extraction system using OCR and pattern recognition
+- **Database Integration:** Implement PostgreSQL database with proper schema design and relationships
+- **Background Processing:** Set up Celery workers with Redis for asynchronous PDF processing
+- **Quality Assurance:** Implement data validation and quality indicators for extraction confidence
+
+### API Development
+- **Upload API:** RESTful endpoints for PDF file uploads with vendor detection
+- **Processing API:** Real-time status tracking for extraction tasks
+- **Download API:** Bulk download functionality for processed files and Excel exports
+- **Management API:** Administrative endpoints for system management
+
+### Documentation & Deployment
+- **Technical Documentation:** Comprehensive README with installation and usage instructions
+- **Docker Setup:** Complete docker-compose configuration for easy deployment
+- **API Documentation:** Detailed endpoint specifications with examples
+- **User Guide:** Instructions for system operation and maintenance
+
+### System Features
+- **Admin Interface:** Django admin panel with Jazzmin theme for data management
+- **User Authentication:** Secure login system with role-based access control
+- **File Management:** Organized storage and retrieval of processed files
+- **Error Handling:** Robust error handling with logging and recovery mechanisms
+
+---
+
+## 4. DELIVERABLES
+
+### Source Code Repository
+- **GitHub Repository:** Complete source code with version control history
+- **Code Quality:** Well-documented, maintainable code following best practices
+- **Configuration Files:** All necessary configuration files for deployment
+- **Test Scripts:** Validation and testing utilities for system verification
+
+### Dockerized Application
+- **Docker Containers:** Multi-service setup including web, database, Redis, and Celery workers
+- **docker-compose.yml:** Complete orchestration configuration for one-command deployment
+- **Environment Configuration:** Proper environment variable management for different deployment scenarios
+- **Data Persistence:** Proper volume mounting for data persistence and backups
+
+### Documentation Package
+- **README.md:** Comprehensive system documentation with architecture overview
+- **Setup Guide:** Step-by-step installation and deployment instructions
+- **API Documentation:** Complete endpoint reference with examples
+- **Troubleshooting Guide:** Common issues and resolution procedures
+
+### Project Agreement
+- **agreement.txt:** This document outlining project scope and responsibilities
+- **Change Log:** Documentation of any scope changes or amendments during development
+
+---
+
+## 5. EXCLUSIONS
+
+### Ongoing Support Limitations
+- **Server Maintenance:** Ongoing server administration, security updates, and infrastructure maintenance are not included
+- **Performance Monitoring:** Long-term system monitoring and performance optimization beyond initial setup
+- **Data Backup Services:** Regular data backup and disaster recovery services are not included
+
+### Scope Limitations
+- **UI Customizations:** Client-side interface modifications beyond the agreed initial design scope
+- **Additional Features:** New functionality requests not specified in the original requirements
+- **Integration Services:** Third-party system integrations not identified in initial scope
+
+### Vendor Template Constraints
+- **Template Limits:** Additional vendor configurations beyond the agreed number will require scope amendment
+- **Pattern Complexity:** Extremely complex or non-standard PDF formats may require additional development time
+- **Language Support:** Additional language support beyond English and basic multilingual OCR may require extra scope
+
+### Third-Party Dependencies
+- **External Service Costs:** Any required third-party services or API costs are client responsibility
+- **License Fees:** Software licensing costs for production deployment
+- **Infrastructure Costs:** Server hosting, domain, and SSL certificate costs
+
+---
+
+## 6. TIMELINE & COMMUNICATION
+
+### Development Timeline
+- **Project Duration:** Timeline to be mutually agreed upon based on scope complexity
+- **Milestone Delivery:** Regular deliverable checkpoints with client review and approval
+- **Testing Phase:** Dedicated testing period with client validation of extraction accuracy
+- **Deployment Window:** Agreed timeframe for final deployment and system handover
+
+### Communication Protocol
+- **Progress Updates:** Regular status reports via agreed communication channel (email/meetings)
+- **Issue Resolution:** Prompt communication of any blockers or scope clarifications needed
+- **Change Requests:** Formal process for handling scope modifications during development
+- **Documentation Review:** Client review periods for documentation and system validation
+
+### Quality Assurance
+- **Testing Standards:** Minimum accuracy thresholds for data extraction to be agreed upon
+- **Performance Benchmarks:** System performance criteria for processing speed and reliability
+- **User Acceptance:** Client approval process for system functionality and interface
+
+---
+
+## 7. ACKNOWLEDGMENT & AGREEMENT TERMS
+
+### Mutual Understanding
+- **Scope Clarity:** Both client and developer confirm that project requirements are clearly understood
+- **Responsibility Alignment:** All parties acknowledge their respective responsibilities as outlined above
+- **Deliverable Agreement:** Client and developer agree on the specified deliverables and quality standards
+
+### Change Management
+- **Scope Modifications:** Any changes to the agreed scope will require written amendment to this agreement
+- **Timeline Adjustments:** Schedule changes due to scope modifications will be mutually negotiated
+- **Cost Implications:** Additional work beyond agreed scope may incur additional costs to be negotiated separately
+
+### Final Delivery
+- **System Handover:** Complete system transfer including code, documentation, and deployment instructions
+- **Knowledge Transfer:** Technical briefing session for system operation and maintenance
+- **Support Transition:** Clear definition of post-delivery support boundaries and procedures
+
+### Legal Considerations
+- **Intellectual Property:** Source code ownership and usage rights to be clearly defined
+- **Confidentiality:** Both parties agree to maintain confidentiality of proprietary information
+- **Liability Limits:** Reasonable limitations on liability for system performance and data accuracy
+
+---
+
+**AGREEMENT STATUS:** Draft - Pending Review and Approval
+
+**Signatures:**
+- Client: _________________________ Date: _________
+- Developer: _______________________ Date: _________
+
+---
+
+*This agreement serves as the foundation for project development and may be amended by mutual consent of both parties.*

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Page Auto-Refresh Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        button { padding: 15px 30px; margin: 10px; font-size: 16px; cursor: pointer; }
+        .test-btn { background: #007bff; color: white; border: none; border-radius: 5px; }
+        .test-btn:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>Upload Page Auto-Refresh Test</h1>
+    
+    <p>Click these buttons to test the auto-refresh behavior:</p>
+    
+    <button class="test-btn" onclick="testDuplicateWarning()">Test Duplicate Warning (3s refresh)</button>
+    <button class="test-btn" onclick="testDuplicateRetry()">Test Duplicate Retry (4s refresh)</button>
+    
+    <div id="countdown" style="margin-top: 20px; font-size: 18px; color: #28a745;"></div>
+    
+    <script>
+        function testDuplicateWarning() {
+            console.log('🔄 Testing duplicate warning with auto-refresh...');
+            
+            // Set up automatic refresh timer
+            let seconds = 3;
+            const countdownEl = document.getElementById('countdown');
+            
+            const countdown = setInterval(() => {
+                countdownEl.textContent = `Auto-refresh in ${seconds} seconds...`;
+                seconds--;
+                if (seconds < 0) {
+                    clearInterval(countdown);
+                    console.log('🔄 Auto-refreshing page after duplicate warning test...');
+                    window.location.reload();
+                }
+            }, 1000);
+            
+            Swal.fire({
+                icon: 'warning',
+                title: 'Duplicate PDF Detected',
+                text: 'This PDF was already processed on 2025-10-14 10:30:15',
+                html: \`
+                    <div style="text-align: left; margin-top: 15px;">
+                        <p style="margin-bottom: 10px; font-weight: bold;">This PDF was already processed on 2025-10-14 10:30:15</p>
+                        <p style="color: #666;"><strong>Previously processed:</strong> 2025-10-14 10:30:15</p>
+                        <p style="color: #28a745; margin-top: 15px;"><i class="fas fa-refresh"></i> <strong>Page will refresh automatically in 3 seconds</strong></p>
+                        <p style="color: #dc3545; font-size: 12px; margin-top: 10px;"><i class="fas fa-clock"></i> Click anywhere to refresh immediately</p>
+                    </div>
+                \`,
+                timer: 3000,
+                timerProgressBar: true,
+                showConfirmButton: true,
+                confirmButtonText: 'Refresh Now',
+                confirmButtonColor: '#28a745',
+                background: 'linear-gradient(135deg, #F09819 0%, #EDDE5D 100%)',
+                color: 'white',
+                allowOutsideClick: true,
+                allowEscapeKey: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    clearInterval(countdown);
+                    console.log('🔄 Manual refresh triggered by user...');
+                    window.location.reload();
+                }
+            });
+        }
+        
+        function testDuplicateRetry() {
+            console.log('🔄 Testing duplicate retry with auto-refresh...');
+            
+            // Set up automatic refresh timer
+            let seconds = 4;
+            const countdownEl = document.getElementById('countdown');
+            
+            const countdown = setInterval(() => {
+                countdownEl.textContent = \`Auto-refresh in \${seconds} seconds...\`;
+                seconds--;
+                if (seconds < 0) {
+                    clearInterval(countdown);
+                    console.log('🔄 Auto-refreshing page after duplicate retry test...');
+                    window.location.reload();
+                }
+            }, 1000);
+            
+            Swal.fire({
+                icon: 'info',
+                title: 'Duplicate PDF - Retrying Extraction',
+                text: 'Duplicate PDF detected, retrying extraction.',
+                html: \`
+                    <div style="text-align: center; margin-top: 15px;">
+                        <p style="margin-bottom: 10px;">Duplicate PDF detected, retrying extraction.</p>
+                        <p style="color: #28a745; margin-top: 15px;"><i class="fas fa-sync fa-spin"></i> Processing will continue...</p>
+                        <p style="color: #666; font-size: 14px;">Page will refresh automatically in 4 seconds</p>
+                    </div>
+                \`,
+                timer: 4000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                background: 'linear-gradient(135deg, #17a2b8 0%, #20c997 100%)',
+                color: 'white'
+            });
+        }
+    </script>
+</body>
+</html>

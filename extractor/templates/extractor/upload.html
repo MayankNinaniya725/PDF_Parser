@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Upload PDF</title>
+    <title>Upload_PDF</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -1024,7 +1024,62 @@
                     },
                     body: formData
                 });
-                const data = await response.json();
+                
+                // DEBUG: Check raw response
+                console.log('🌐 Raw response status:', response.status);
+                console.log('🌐 Raw response headers:', response.headers.get('content-type'));
+                
+                // Check if response is actually JSON
+                const responseText = await response.text();
+                console.log('📄 Raw response text:', responseText.substring(0, 200) + '...');
+                
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                    console.log('✅ Successfully parsed JSON:', data);
+                } catch (e) {
+                    console.log('❌ Failed to parse JSON:', e);
+                    console.log('📄 Full raw response:', responseText);
+                    resetUI();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Response Error',
+                        text: 'Server returned invalid response format',
+                        confirmButtonColor: '#FF4B2B'
+                    });
+                    return;
+                }
+                
+                // Check for redirect response
+                if (data.redirect) {
+                    console.log('🔄 Server requested redirect, refreshing in 3 seconds...');
+                    
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Duplicate PDF Detected',
+                        text: 'This PDF was already processed. Page will refresh in 3 seconds.',
+                        timer: 3000,
+                        timerProgressBar: true,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Refresh Now',
+                        allowOutsideClick: true
+                    }).then((result) => {
+                        if (result.isConfirmed || result.dismiss === Swal.DismissReason.timer) {
+                            console.log('🔄 Refreshing page...');
+                            window.location.reload();
+                        }
+                    });
+                    
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 3000);
+                    return;
+                }
+                
+                // DEBUG: Log the server response
+                console.log('📊 Server response:', data);
+                console.log('📊 Response status:', data.status);
+                console.log('📊 Response type:', data.type);
 
                 // Handle error responses
                 if (data.status === 'error') {
@@ -1104,20 +1159,41 @@
                     resetUI();
                     
                     if (data.type === 'duplicate') {
+                        console.log('🔄 Duplicate detected, setting up auto-refresh...');
+                        
+                        // Set up automatic refresh timer
+                        setTimeout(() => {
+                            console.log('🔄 Auto-refreshing upload page after duplicate detection...');
+                            window.location.reload();
+                        }, 3000);
+                        
                         Swal.fire({
                             icon: 'warning',
-                            title: 'Duplicate PDF',
+                            title: 'Duplicate PDF Detected',
                             text: data.message,
                             html: `
                                 <div style="text-align: left; margin-top: 15px;">
                                     <p style="margin-bottom: 10px; font-weight: bold;">${data.message}</p>
-                                    ${data.processed_date ? `<p style="color: #666;"><strong>Processed on:</strong> ${data.processed_date}</p>` : ''}
+                                    ${data.processed_date ? `<p style="color: #666;"><strong>Previously processed:</strong> ${data.processed_date}</p>` : ''}
+                                    <p style="color: #28a745; margin-top: 15px;"><i class="fas fa-refresh"></i> <strong>Page will refresh automatically in 3 seconds</strong></p>
+                                    <p style="color: #dc3545; font-size: 12px; margin-top: 10px;"><i class="fas fa-clock"></i> Click anywhere to refresh immediately</p>
                                 </div>
                             `,
-                            confirmButtonText: 'Upload Different PDF',
-                            confirmButtonColor: '#F09819',
+                            timer: 3000,
+                            timerProgressBar: true,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Refresh Now',
+                            confirmButtonColor: '#28a745',
                             background: 'linear-gradient(135deg, #F09819 0%, #EDDE5D 100%)',
-                            color: 'white'
+                            color: 'white',
+                            allowOutsideClick: true,
+                            allowEscapeKey: true
+                        }).then((result) => {
+                            // Manual refresh if user clicks button
+                            if (result.isConfirmed) {
+                                console.log('🔄 Manual refresh triggered by user...');
+                                window.location.reload();
+                            }
                         });
                     } else {
                         Swal.fire({
@@ -1132,16 +1208,45 @@
 
                 // Handle successful processing
                 if (data.status === 'processing') {
-                    // Show success notification
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Upload Successful!',
-                        text: data.message,
-                        timer: 3000,
-                        showConfirmButton: false,
-                        background: 'linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)',
-                        color: 'white'
-                    });
+                    // Check if this is a duplicate retry
+                    if (data.type === 'duplicate') {
+                        console.log('🔄 Duplicate retry detected, setting up auto-refresh...');
+                        
+                        // Set up automatic refresh timer (independent of SweetAlert)
+                        setTimeout(() => {
+                            console.log('🔄 Auto-refreshing upload page after duplicate retry...');
+                            window.location.reload();
+                        }, 4000);
+                        
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Duplicate PDF - Retrying Extraction',
+                            text: data.message,
+                            html: `
+                                <div style="text-align: center; margin-top: 15px;">
+                                    <p style="margin-bottom: 10px;">${data.message}</p>
+                                    <p style="color: #28a745; margin-top: 15px;"><i class="fas fa-sync fa-spin"></i> Processing will continue...</p>
+                                    <p style="color: #666; font-size: 14px;">Page will refresh automatically in 4 seconds</p>
+                                </div>
+                            `,
+                            timer: 4000,
+                            timerProgressBar: true,
+                            showConfirmButton: false,
+                            background: 'linear-gradient(135deg, #17a2b8 0%, #20c997 100%)',
+                            color: 'white'
+                        });
+                    } else {
+                        // Regular processing notification
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Upload Successful!',
+                            text: data.message,
+                            timer: 3000,
+                            showConfirmButton: false,
+                            background: 'linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)',
+                            color: 'white'
+                        });
+                    }
                     
                     // Start progress polling if we have a task ID
                     if (data.task_id) {
@@ -1459,6 +1564,9 @@
         
         // Drag and drop file upload functionality
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Upload page JavaScript loaded!');
+            console.log('📋 Auto-refresh functionality is active');
+            
             const dropArea = document.getElementById('drop-area');
             const fileInput = document.getElementById('pdf');
             const fileName = document.getElementById('file-name');

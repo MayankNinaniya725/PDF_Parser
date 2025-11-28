@@ -228,8 +228,11 @@ def process_pdf(request):
 
             existing_pdf = UploadedPDF.objects.filter(file_hash=file_hash).first()
             if existing_pdf:
+                logger.info(f"🔍 DUPLICATE DEBUG: Found existing PDF with status '{existing_pdf.status}' and vendor '{existing_pdf.vendor.name}'")
+                
                 # If vendor mismatch, reject but save reference with new vendor as well
                 if existing_pdf.vendor.id != vendor.id:
+                    logger.info(f"🚫 DUPLICATE DEBUG: Vendor mismatch - existing: {existing_pdf.vendor.name}, new: {vendor.name}")
                     msg = f"PDF previously uploaded for vendor '{existing_pdf.vendor.name}'. Please select the correct vendor."
                     messages.warning(request, msg)
                     store_dashboard_message(request, msg, 'warning', {'original_vendor': existing_pdf.vendor.name, 'new_vendor': vendor.name})
@@ -263,6 +266,10 @@ def process_pdf(request):
                         vendor_config, config_path = find_vendor_config(vendor, settings)
                         
                         if vendor_config:
+                            # Update timestamp so it appears as new in dashboard
+                            existing_pdf.uploaded_at = timezone.now()
+                            existing_pdf.save()
+                            
                             task = process_pdf_file.delay(existing_pdf.id, vendor_config)
                             msg = "Retrying extraction for duplicate PDF"
                             messages.info(request, msg)
@@ -294,13 +301,18 @@ def process_pdf(request):
                             'type': 'extraction_error'
                         }, status=500)
 
-                msg = f"This PDF was already processed on {existing_pdf.uploaded_at.strftime('%Y-%m-%d %H:%M:%S')}"
+                # Update timestamp so duplicate appears as new in dashboard 
+                original_date = existing_pdf.uploaded_at.strftime('%Y-%m-%d %H:%M:%S')
+                existing_pdf.uploaded_at = timezone.now()
+                existing_pdf.save()
+                
+                msg = f"This PDF was already processed on {original_date}"
                 messages.warning(request, msg)
                 return JsonResponse({
                     'status': 'warning',
                     'message': msg,
                     'type': 'duplicate',
-                    'processed_date': existing_pdf.uploaded_at.strftime('%Y-%m-%d %H:%M:%S')
+                    'processed_date': original_date
                 }, status=200)
 
             # Save new PDF entry

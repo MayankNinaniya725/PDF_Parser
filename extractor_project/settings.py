@@ -3,7 +3,7 @@ Django settings for extractor_project project.
 """
 
 from pathlib import Path
-import os  # Needed for os.getenv
+import os 
 
 # Build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -12,9 +12,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 AUTH_USER_MODEL = 'extractor.CustomUser'
 
 # Authentication settings
-LOGIN_URL = '/login/'  # Updated to match our URL pattern
-LOGIN_REDIRECT_URL = '/admin/'  # Redirect to admin panel after login
-LOGOUT_REDIRECT_URL = '/admin/login/'  # Redirect to admin login page after logout
+LOGIN_URL = '/login/'  
+LOGIN_REDIRECT_URL = '/admin/'  
+LOGOUT_REDIRECT_URL = '/admin/login/' 
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "your-default-secret-key")
@@ -23,13 +23,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "your-default-secret-key")
 DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']  # Allow all hosts for development
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
-
-# Custom User Model is already defined above
-# AUTH_USER_MODEL = 'extractor.CustomUser'
-
-# Authentication Settings are already defined above
-# These settings were duplicated and conflicting
+CSRF_TRUSTED_ORIGINS = ['http://localhost:9000', 'http://127.0.0.1:9000']
 
 # Application definition
 INSTALLED_APPS = [
@@ -133,8 +127,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'extractor.middleware.NoCacheMiddleware',  # No-cache middleware
-    'extractor.middleware.BrokenLinkMiddleware',  # Broken link handling middleware - FIXED
+    'extractor.middleware.NoCacheMiddleware',  
+    'extractor.middleware.BrokenLinkMiddleware', 
 ]
 
 ROOT_URLCONF = 'extractor_project.urls'
@@ -186,7 +180,7 @@ USE_TZ = True
 
 # Static & Media files
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'  # Changed from 'static' to 'staticfiles'
+STATIC_ROOT = BASE_DIR / 'staticfiles' # For collecting static files
 STATICFILES_DIRS = [
     BASE_DIR / 'extractor' / 'static',
 ]
@@ -206,12 +200,9 @@ os.makedirs(STATIC_ROOT, exist_ok=True)
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Authentication settings (already set above)
-# Removing duplicate settings to avoid confusion
-
 # Celery Configuration
-CELERY_BROKER_URL = 'redis://redis:6379/0'  # Docker service name
-CELERY_RESULT_BACKEND = 'redis://redis:6379/0'  # Docker service name
+CELERY_BROKER_URL = 'redis://redis:6379/0'  
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'  
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'

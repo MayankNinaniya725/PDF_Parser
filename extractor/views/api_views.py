@@ -126,7 +126,7 @@ def list_all_extracted_directories(request):
 
 
 @require_GET
-@login_required
+@csrf_exempt
 def get_latest_pdfs(request):
     """API endpoint to get latest PDF updates for dashboard auto-refresh"""
     try:
@@ -161,16 +161,30 @@ def get_latest_pdfs(request):
             }
             pdf_data.append(pdf_info)
         
-        return JsonResponse({
+        response = JsonResponse({
             'status': 'success',
             'pdfs': pdf_data,
             'count': len(pdf_data),
             'timestamp': datetime.now().isoformat()
         })
         
+        # Add CORS headers for browser compatibility
+        response['Access-Control-Allow-Origin'] = '*'
+        response['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
+        response['Access-Control-Allow-Headers'] = 'Content-Type'
+        
+        return response
+        
     except Exception as e:
         logger.error(f"Error getting latest PDFs: {str(e)}", exc_info=True)
-        return JsonResponse({
+        response = JsonResponse({
             'status': 'error',
             'message': f'Error retrieving PDF updates: {str(e)}'
         }, status=500)
+        
+        # Add CORS headers for browser compatibility
+        response['Access-Control-Allow-Origin'] = '*'
+        response['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
+        response['Access-Control-Allow-Headers'] = 'Content-Type'
+        
+        return response

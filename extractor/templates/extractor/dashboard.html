@@ -3,7 +3,7 @@
 {% load urllib_extras %}
 <html>
 <head>
-    <title>Extraction Dashboard</title>
+    <title>Extraction_Dashboard</title>
     <!-- Cache control headers -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -674,7 +674,7 @@
     <div id="notification-container"></div>
     
     <div class="content">
-        <h2 class="section-title">Recent PDF Uploads</h2>
+        <h2 class="section-title">Recent-PDF-Uploads</h2>
         <table class="table table-bordered table-striped">
             <thead>
                 <tr>
@@ -1729,20 +1729,86 @@
         
         // Initialize current PDF IDs on page load
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Dashboard JavaScript is loading...');
+            
+            // Debug: Check if table exists
+            const tableBody = document.getElementById('pdfTableBody');
+            console.log('📊 Table body element:', tableBody);
+            
             const rows = document.querySelectorAll('#pdfTableBody tr[data-pdf-id]');
+            console.log(`📊 Found ${rows.length} PDF rows on page load`);
+            console.log('📊 All rows in table:', document.querySelectorAll('#pdfTableBody tr'));
+            
             rows.forEach(row => {
                 const pdfId = row.getAttribute('data-pdf-id');
-                if (pdfId) currentPdfIds.add(parseInt(pdfId));
+                if (pdfId) {
+                    currentPdfIds.add(parseInt(pdfId));
+                    console.log(`📄 Added PDF ID: ${pdfId} to current set`);
+                }
             });
+            
+            console.log('📊 Current PDF IDs:', Array.from(currentPdfIds));
+            
+            // Force a complete refresh on first load (ignore timestamp)
+            console.log('🔍 Running initial complete refresh...');
+            setTimeout(() => {
+                forceRefreshDashboard();
+            }, 1000);
             
             // Start auto-refresh
             startAutoRefresh();
         });
         
+        // Listen for messages from upload window (for duplicate notifications)
+        window.addEventListener('message', function(event) {
+            if (event.data === 'duplicate_uploaded') {
+                console.log('📄 Duplicate upload detected, forcing dashboard refresh...');
+                // Force immediate check for updates by bypassing timestamp
+                setTimeout(() => {
+                    forceRefreshDashboard();
+                }, 1000); // Wait 1 second to allow server processing
+            }
+        });
+        
+        // Force a complete dashboard refresh (bypass timestamp)
+        async function forceRefreshDashboard() {
+            try {
+                console.log('🔄 Force refreshing dashboard...');
+                const response = await fetch('/api/latest-pdfs/');
+                const data = await response.json();
+                
+                if (data.status === 'success' && data.pdfs && data.pdfs.length > 0) {
+                    // Check for any PDFs not in current view
+                    const newPdfs = data.pdfs.filter(pdf => !currentPdfIds.has(pdf.id));
+                    
+                    if (newPdfs.length > 0) {
+                        console.log(`📄 Found ${newPdfs.length} new PDF(s) during force refresh`);
+                        updatePdfTable(newPdfs);
+                        showUpdateNotification(newPdfs);
+                    } else {
+                        console.log('📄 No new PDFs found, but refreshing timestamp');
+                    }
+                    
+                    // Update timestamp for regular checks
+                    lastUpdateTimestamp = data.timestamp;
+                } else {
+                    console.log('📄 No PDFs returned from API');
+                }
+            } catch (error) {
+                console.error('❌ Error during force refresh:', error);
+            }
+        }
+        
         function startAutoRefresh() {
             // Check for updates every 5 seconds
             refreshInterval = setInterval(checkForUpdates, 5000);
             console.log('🔄 Dashboard auto-refresh started (5 second intervals)');
+            
+            // Also show a visual indicator that auto-refresh is active
+            const refreshInfo = document.querySelector('.refresh-info');
+            if (refreshInfo) {
+                refreshInfo.innerHTML += ' <span style="color: #28a745; font-size: 12px;">● Auto-refresh active</span>';
+            }
         }
         
         function stopAutoRefresh() {
@@ -1759,12 +1825,16 @@
                     ? `/api/latest-pdfs/?since=${lastUpdateTimestamp}`
                     : '/api/latest-pdfs/';
                     
+                console.log(`🔄 Checking for updates: ${url}`);
                 const response = await fetch(url);
                 const data = await response.json();
+                console.log(`📊 API Response:`, data);
                 
                 if (data.status === 'success' && data.pdfs && data.pdfs.length > 0) {
                     // Check if there are any new PDFs
                     const newPdfs = data.pdfs.filter(pdf => !currentPdfIds.has(pdf.id));
+                    console.log(`📄 Current PDF IDs:`, Array.from(currentPdfIds));
+                    console.log(`📄 New PDFs found:`, newPdfs);
                     
                     if (newPdfs.length > 0) {
                         console.log(`📄 Found ${newPdfs.length} new PDF(s), updating table...`);
@@ -1772,10 +1842,14 @@
                         
                         // Show notification for new uploads
                         showUpdateNotification(newPdfs);
+                    } else {
+                        console.log(`📄 No new PDFs (${data.pdfs.length} total, all already known)`);
                     }
                     
                     // Update timestamp for next request
                     lastUpdateTimestamp = data.timestamp;
+                } else {
+                    console.log(`📄 No PDFs in response or error status`);
                 }
             } catch (error) {
                 console.error('Error checking for updates:', error);
@@ -1877,7 +1951,8 @@
         
         // Manual refresh button
         function refreshDashboard() {
-            location.reload();
+            console.log('🔄 Manual refresh triggered');
+            forceRefreshDashboard();
         }
     </script>
 

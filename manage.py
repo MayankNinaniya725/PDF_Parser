@@ -25,7 +25,9 @@ if __name__ == '__main__':
 # py -m venv .venv
 # .venv\Scripts\activate
 # python manage.py runserver
+# ssh -T git@github.com
 
+# docker compose 
 # docker compose up -d for starting the services in detached mode
 # docker compose down for stopping the services
 # docker compose logs -f for viewing the logs
@@ -34,14 +36,29 @@ if __name__ == '__main__':
 # docker compose exec web python manage.py migrate for applying migrations
 # docker compose exec web python manage.py createsuperuser for creating a superuser
 # PS C:\Users\Mayank\desktop\dee\extractor_project> docker compose exec web python manage.py flush 
+# On production server, run once:
+# python manage.py collectstatic --noinput
 
 # docker compose exec web python manage.py shell for removing files for testing the files again and again
 # from extractor.models import UploadedPDF, ExtractedData
 # UploadedPDF.objects.all().delete()
 # ExtractedData.objects.all().delete()
+# exit()
 
-#  http://localhost:8000/admin
-#  http://localhost:8000/upload/ for uploading PDFs
-#  http://0.0.0.0:8000/admin/
-
+#  http://localhost:9000/admin
+#  http://localhost:9000/upload/ for uploading PDFs
+#  http://0.0.0.0:9000/admin/
+#  ngrok http 9000
+#  http://pdf-parser.local:9000
+ 
 # git rm --cached <file_or_folder_name> for untarcking a file but keeping it in the working directory.
+
+# dee@fabricom  username
+# 123456789@d   password
+
+# sudo rm /path/to/file
+# sudo rm -rf /path/to/folder
+
+# docker ps --format "table {{.Names}}\t{{.Ports}}" | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}:[0-9]+|0\.0\.0\.0:[0-9]+' | sed 's/^/http:\/\//'
+# for accessing via terminal
+# ssh -L 8000:localhost:8000 username@vm-ip

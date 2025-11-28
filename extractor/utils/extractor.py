@@ -74,27 +74,30 @@ def extract_tables_from_page(page: Any, vendor_config: Dict[str, Any]) -> List[D
                     "TEST_CERT_NO": "NA"
                 }
 
+                # For each field, extract value from its column in this row
+
                 for field_name, col_idx in field_columns.items():
-                    if col_idx < len(row) and row[col_idx]:
-                        value = str(row[col_idx]).strip()
+                    # Always use the cell value from this row, even if it's empty (don't carry forward)
+                    value = str(row[col_idx]).strip() if col_idx < len(row) and row[col_idx] else ""
+
+                    # For plate and heat numbers, use the value from this row only
+                    if field_name in ["PART_NO", "PRODUCT_NO"]:
+                        entry["PLATE_NO"] = value
+                    elif field_name in ["HEAT_NO"]:
+                        entry["HEAT_NO"] = value
+                    elif field_name in ["CERTIFICATE_NO", "REPORT_NO"]:
+                        entry["TEST_CERT_NO"] = value
+                    else:
+                        # For other fields, apply pattern matching if needed
                         pattern = get_pattern(fields[field_name])
-                        
-                        # Apply pattern matching
                         match = re.search(pattern, value, re.IGNORECASE)
                         if match:
                             value = match.group(1) if match.lastindex else match.group(0)
                             value = value.strip()
+                            entry[field_name] = value
 
-                            # Map to normalized field names
-                            if field_name in ["PART_NO", "PRODUCT_NO"]:
-                                entry["PLATE_NO"] = value
-                            elif field_name in ["CERTIFICATE_NO", "REPORT_NO"]:
-                                entry["TEST_CERT_NO"] = value
-                            else:
-                                entry[field_name] = value
-
-                # Add non-empty entries
-                if any(v != "NA" for v in entry.values()):
+                # Only add entry if PLATE_NO and HEAT_NO are both present and not NA
+                if entry["PLATE_NO"] != "NA" and entry["HEAT_NO"] != "NA":
                     entries.append(entry)
 
     except Exception as e:

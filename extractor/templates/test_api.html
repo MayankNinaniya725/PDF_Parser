@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard Auto-Refresh Test</title>
+</head>
+<body>
+    <h1>Dashboard Auto-Refresh Test</h1>
+    <div id="status">Loading...</div>
+    <div id="results"></div>
+    
+    <script>
+        console.log('🚀 Test page loaded');
+        
+        async function testAPI() {
+            try {
+                console.log('🔄 Testing API call...');
+                const response = await fetch('/api/latest-pdfs/');
+                console.log('📊 Response:', response);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('📄 Data:', data);
+                    document.getElementById('status').textContent = 'API Working!';
+                    document.getElementById('results').innerHTML = `
+                        <h3>API Response:</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('❌ API Error:', error);
+                document.getElementById('status').textContent = 'API Error: ' + error.message;
+            }
+        }
+        
+        // Test immediately
+        testAPI();
+        
+        // Test every 5 seconds
+        setInterval(testAPI, 5000);
+    </script>
+</body>
+</html>
