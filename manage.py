@@ -27,10 +27,14 @@ if __name__ == '__main__':
 # python manage.py runserver
 # ssh -T git@github.com
 
-# docker compose 
+
+# $env:DJANGO_SETTINGS_MODULE="extractor_project.settings_prod"; docker compose up --build -d for running in production mode on windows powershell
+# export DJANGO_SETTINGS_MODULE="extractor_project.settings_prod"; docker compose up --build -d for running in production mode on linux/mac terminal
+
+
 # docker compose up -d for starting the services in detached mode
 # docker compose down for stopping the services
-# docker compose logs -f for viewing the logs
+# docker compose logs -f for viewing the logs in live view 
 # docker compose up --build  for rebuilding the images and starting the services when debugging, so you can see real-time logs in the terminal. 
 # docker compose up --build -d for rebuilding the images and starting the services in detached mode or for normal background running (production/dev).
 # docker compose exec web python manage.py migrate for applying migrations

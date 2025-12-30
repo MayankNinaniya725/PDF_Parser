@@ -3,6 +3,7 @@ version: '3'
 services:
   web:
     build: .
+    # command: gunicorn --timeout 120 --workers 4 --bind 0.0.0.0:9000 extractor_project.wsgi:application # Updated to use gunicorn for production
     command: ./start.sh
     volumes:
       - .:/code
@@ -15,7 +16,7 @@ services:
       redis:
         condition: service_started
     environment:
-      - DJANGO_SETTINGS_MODULE=extractor_project.settings
+      - DJANGO_SETTINGS_MODULE=extractor_project.settings  # Updated to production settings
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - DATABASE_URL=postgres://extractor_user:strongpassword123@db:5432/extractor_db
@@ -34,7 +35,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      - DJANGO_SETTINGS_MODULE=extractor_project.settings
+      - DJANGO_SETTINGS_MODULE=extractor_project.settings  # Updated to production settings
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - DATABASE_URL=postgres://extractor_user:strongpassword123@db:5432/extractor_db

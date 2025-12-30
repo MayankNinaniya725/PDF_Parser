@@ -27,6 +27,15 @@ mkdir -p media/uploads media/extracted media/vendor_configs staticfiles
 
 # Start server
 echo "Starting server..."
-python manage.py runserver 0.0.0.0:9000
+
+echo "Environment: $DJANGO_SETTINGS_MODULE"
+
+if echo "$DJANGO_SETTINGS_MODULE" | grep -q "prod"; then
+    echo "Starting Gunicorn (production mode)..."
+    gunicorn extractor_project.wsgi:application --bind 0.0.0.0:9000
+else
+    echo "Starting Django development server..."
+    python manage.py runserver 0.0.0.0:9000
+fi
 
 

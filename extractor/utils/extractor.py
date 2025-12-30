@@ -8,6 +8,7 @@ from PyPDF2 import PdfReader, PdfWriter
 from datetime import datetime
 from typing import Dict, List, Any, Tuple
 
+# Assuming these are your local modules
 from .ocr_helper import extract_text_with_ocr
 from .pattern_extractor import extract_patterns_from_text
 from .document_preprocessor import preprocess_pdf_for_extraction
@@ -67,6 +68,7 @@ def extract_tables_from_page(page: Any, vendor_config: Dict[str, Any]) -> List[D
                         break
 
             # Process each data row
+            # FIX: Logic changed here to treat every row independently
             for row in table[1:]:
                 entry = {
                     "PLATE_NO": "NA",
@@ -74,30 +76,38 @@ def extract_tables_from_page(page: Any, vendor_config: Dict[str, Any]) -> List[D
                     "TEST_CERT_NO": "NA"
                 }
 
-                # For each field, extract value from its column in this row
+                plate_no_val = ""
+                heat_no_val = ""
+                cert_no_val = ""
 
+                # Extract values from the current row
                 for field_name, col_idx in field_columns.items():
-                    # Always use the cell value from this row, even if it's empty (don't carry forward)
                     value = str(row[col_idx]).strip() if col_idx < len(row) and row[col_idx] else ""
+                    if value:
+                        if field_name in ["PART_NO", "PRODUCT_NO"]:
+                            plate_no_val = value
+                        elif field_name == "HEAT_NO":
+                            heat_no_val = value
+                        elif field_name in ["CERTIFICATE_NO", "REPORT_NO"]:
+                            cert_no_val = value
 
-                    # For plate and heat numbers, use the value from this row only
-                    if field_name in ["PART_NO", "PRODUCT_NO"]:
-                        entry["PLATE_NO"] = value
-                    elif field_name in ["HEAT_NO"]:
-                        entry["HEAT_NO"] = value
-                    elif field_name in ["CERTIFICATE_NO", "REPORT_NO"]:
-                        entry["TEST_CERT_NO"] = value
-                    else:
-                        # For other fields, apply pattern matching if needed
+                # FIX: Assign values directly. Do NOT use 'last_seen' variables.
+                entry["PLATE_NO"] = plate_no_val
+                entry["HEAT_NO"] = heat_no_val if heat_no_val else "NA"
+                entry["TEST_CERT_NO"] = cert_no_val if cert_no_val else "NA"
+                
+                # For other fields, apply pattern matching if needed
+                for field_name, col_idx in field_columns.items():
+                    if field_name not in ["PART_NO", "PRODUCT_NO", "HEAT_NO", "CERTIFICATE_NO", "REPORT_NO"]:
+                        value = str(row[col_idx]).strip() if col_idx < len(row) and row[col_idx] else ""
                         pattern = get_pattern(fields[field_name])
                         match = re.search(pattern, value, re.IGNORECASE)
                         if match:
-                            value = match.group(1) if match.lastindex else match.group(0)
-                            value = value.strip()
-                            entry[field_name] = value
+                            matched_value = match.group(1) if match.lastindex else match.group(0)
+                            entry[field_name] = matched_value.strip()
 
-                # Only add entry if PLATE_NO and HEAT_NO are both present and not NA
-                if entry["PLATE_NO"] != "NA" and entry["HEAT_NO"] != "NA":
+                # Only add entry if PLATE_NO is present
+                if entry["PLATE_NO"] and entry["PLATE_NO"] != "NA":
                     entries.append(entry)
 
     except Exception as e:
@@ -144,28 +154,6 @@ def extract_pdf_fields(pdf_path: str, vendor_config: Dict[str, Any], output_fold
             stats["preprocessing_applied"] = True
             logger.info("Document preprocessing applied")
         
-        # Temporarily disable specialized POSCO parser - use standard extraction
-        # TODO: Re-enable after debugging
-        # if vendor_id.lower() == "posco":
-        #     logger.info("Using POSCO specialized table parser")
-        #     posco_results = extract_posco_table_data(preprocessed_path)
-        #     if posco_results:
-        #         # Convert POSCO results to standard format
-        #         for entry in posco_results:
-        #             entry["Hash"] = generate_hash(entry, vendor_id)
-        #             entry["Vendor"] = vendor_name
-        #             entry["Source PDF"] = os.path.basename(pdf_path)
-        #             entry["Created"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        #             entry["OCR_Used"] = False
-        #             results.append(entry)
-        #         
-        #         stats["extraction_success"] = len(results) > 0
-        #         stats["successful_pages"] = len(set(r.get("page_number", 1) for r in results))
-        #         stats["total_pages"] = stats["successful_pages"]
-        #         
-        #         logger.info(f"POSCO extraction completed: {len(results)} entries found")
-        #         return results, stats
-
         # Standard extraction process
         with pdfplumber.open(preprocessed_path) as pdf:
             reader = PdfReader(pdf_path)
@@ -212,6 +200,7 @@ def extract_pdf_fields(pdf_path: str, vendor_config: Dict[str, Any], output_fold
                         if any(r["Hash"] == entry["Hash"] for r in results):
                             logger.info(f"Skipping duplicate entry: {entry}")
                             continue
+                        
 
                         # Create filename
                         filename_parts = [
